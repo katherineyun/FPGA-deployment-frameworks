@@ -15,9 +15,9 @@ class WaveBlock(nn.Module):
 
         # check padding = 'same' equivalent
         self.f_pad = nn.ZeroPad2d((0, dilation_rate, 0, 0))
-        self.filter = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (1, 2), dilation = dilation_rate) 
+        self.filter = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (1, 2), dilation = (1, dilation_rate)) 
         self.g_pad = nn.ZeroPad2d((0, dilation_rate, 0, 0))
-        self.gating = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (1, 2), dilation = dilation_rate)
+        self.gating = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (1, 2), dilation = (1, dilation_rate))
         
         self.post_process = nn.Conv2d(in_channels = 32, out_channels = 16, kernel_size = (1, 1))
         
@@ -67,10 +67,6 @@ class WaveNet(nn.Module):
         self.s_dense_1 = nn.Linear(in_features=self.last_n_steps, out_features=512)
         self.s_dense_2 = nn.Linear(in_features=512, out_features=4)
 
-        self.skip_add = functional.Add()
-
-        self.identity = nn.Identity()
-
     def forward(self, x):
         
         input_len = x.shape[3].item()
@@ -82,7 +78,6 @@ class WaveNet(nn.Module):
             skips.append(z)
 
         out = x - x
-
         for s in skips:
             out += s
         
