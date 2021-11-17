@@ -12,11 +12,15 @@ import torchvision.transforms as transforms
 from torchvision.models.resnet import resnet18
 
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 file_path = "/workspace/test/torch_resnet/resnet18.pth"
 model = resnet18().cpu()
 model.load_state_dict(torch.load(file_path))
 
+
+# quant_mode = "calib"
+# deploy = "False"
 quant_mode = "test"
 deploy = "True"
 
@@ -31,11 +35,12 @@ def evaluate(model):
 
   model.eval()
   model = model.to(device)
-  data_block = torch.randn([20, 3, 224, 224])
+  data_block = torch.randn([4, 3, 224, 224])
 
   for data in data_block:
     data = data.unsqueeze(0)
     pred = model(data)
+
   return 
 
 evaluate(quant_model)
