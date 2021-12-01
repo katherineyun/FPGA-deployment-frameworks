@@ -8,35 +8,65 @@ import numpy as np
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Model(nn.Module):
-    def __init__(self):
+    def __init__(self, dilation_rate):
         super(Model, self).__init__()
         self.layer1 = nn.Conv2d(in_channels = 1, out_channels = 16, kernel_size = (1, 1))
+
+        self.layer2_pad = nn.ZeroPad2d((0, dilation_rate, 0, 1))
+        self.layer2 = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (2, 2), dilation = (1, dilation_rate))
+        self.layer3_pad = nn.ZeroPad2d((0, dilation_rate, 0, 1))
+        self.layer3 = nn.Conv2d(in_channels = 32, out_channels = 16, kernel_size = (2, 2), dilation = (1, dilation_rate))
         
-        self.layer2_pad = nn.ZeroPad2d((0, 1, 0, 0))
-        self.layer2 = nn.Conv2d(in_channels = 16, out_channels = 32, kernel_size = (1, 2))
-        
-        self.layer3_pad = nn.ZeroPad2d((0, 1, 0, 0))
-        self.layer3 = nn.Conv2d(in_channels = 32, out_channels = 16, kernel_size = (1, 2))
-        
-        self.skip_add = functional.Add()
 
     def forward(self, x):
-        
-        k = self.layer1(x)
-        
-        print(k.size())
-        x = self.layer2_pad(k)
-        x = self.layer2(x)
-        
-        x = self.layer3_pad(x)
-        x = self.layer3(x)
-        
-        # print(x.size(), k.size())
-        # x = self.skip_add(x, k)
-
-        x = x + k
+        print(x.size())
+        x = self.layer1(x)
        
+        x = self.layer2_pad(x)
+        print(x.size())
+        x = self.layer2(x)
+     
+        x = self.layer3_pad(x)
+        print(x.size())
+        x = self.layer3(x)
+
         return x
+
+model = Model(2)
+
+# quant_mode = "calib"
+# deploy = "False"
+
+quant_mode = "test"
+deploy = "True"
+
+batch_size = 4
+input = torch.randn([batch_size, 1, 2, 1024])
+quantizer = torch_quantizer(
+        quant_mode, model, (input), device=device)
+
+quant_model = quantizer.quant_model
+
+def evaluate(model):
+
+  model.eval()
+  model = model.to(device)
+
+  x = np.random.random((1, 1, 2, 1024)).astype('float32')
+  x = torch.tensor(x)
+    
+  model(x)
+  return 
+
+evaluate(quant_model)
+
+# handle quantization result
+if quant_mode == 'calib':
+    quantizer.export_quant_config()
+if deploy:
+    quantizer.export_xmodel(deploy_check=False)
+
+
 
 # model to test branching (2 and 3)
 # class Model(nn.Module):
@@ -72,38 +102,5 @@ class Model(nn.Module):
 #         print(x1.size(), x2.size())
 #         return x, out1, out2
 
-model = Model()
-
-# quant_mode = "calib"
-# deploy = "False"
-
-quant_mode = "test"
-deploy = "True"
-
-batch_size = 4
-input = torch.randn([batch_size, 1, 1, 1024])
-quantizer = torch_quantizer(
-        quant_mode, model, (input), device=device)
-
-quant_model = quantizer.quant_model
-
-def evaluate(model):
-
-  model.eval()
-  model = model.to(device)
-
-  x = np.random.random((1, 1, 1, 1024)).astype('float32')
-  x = torch.tensor(x)
-
-  pred = model(x)
-  return 
-
-evaluate(quant_model)
-
-# handle quantization result
-if quant_mode == 'calib':
-    quantizer.export_quant_config()
-if deploy:
-    quantizer.export_xmodel(deploy_check=False)
 
     

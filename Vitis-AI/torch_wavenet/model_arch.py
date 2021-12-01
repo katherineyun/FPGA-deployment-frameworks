@@ -69,7 +69,7 @@ class WaveNet(nn.Module):
 
     def forward(self, x):
         
-        input_len = x.shape[3].item()
+        input_len = x.shape[3] #.item()
  
         skips = []
 
