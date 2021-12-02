@@ -4,9 +4,11 @@ import numpy as np
 
 fxc = FuncXClient()
 
-target_endpoint = '92565a2f-5e97-4226-909c-21a8875c4a23' # fpga-test
-#func_uuid = 'f1b1f962-fe00-457d-ae52-05417b005317'
-func_uuid = '44b1a2f6-6765-4648-8dc4-82f9fb21cead'
+# result = fxc.search_function("mnist_func1", offset=0)
+
+target_endpoint = 'ea8eaa35-bfff-4037-8bbf-ffd3f2f7d12f' # fpga-test
+
+func_uuid = '4dc11381-9d7a-4855-8d44-4e0004bf4f88'
 
 data_dir = '/home/myun7/funcx-fpga/data/test_X.npy'
 label_dir = '/home/myun7/funcx-fpga/data/test_Y.npy'
@@ -20,7 +22,7 @@ res = fxc.run(data[idx], endpoint_id=target_endpoint, function_id=func_uuid)
 #print('Function run_id: ', res)
 print(time.time()-t1)
 
-time.sleep(0.5)
+time.sleep(3)
 
 t2 = time.time()
 result = fxc.get_result(res)

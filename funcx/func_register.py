@@ -4,17 +4,18 @@ import time
 fxc = FuncXClient()
 
 
-def mnist_func0(data):
+def mnist_func2(data):
     import numpy as np
     import pyopencl as cl
     import pyopencl.cltypes
-    
+    import sys
     binaryFile = '/home/myun7/funcx-fpga/adder.xclbin'
     source_input = data
     size_in = 28*28*1
 
     if data.size != size_in:
-        return 'Input data size should be (28, 28, 1).'
+        print('Input data size should be (28, 28, 1)')
+        sys.exit()
 
     platform_id = None
     platforms = cl.get_platforms()
@@ -23,14 +24,16 @@ def mnist_func0(data):
             platform_id = platforms.index(platform)
 
     if not platform_id:
-        return 'No Xilinx platform is found.'
+        print('No Xilinx platform is found')
+        sys.exit()
 
     devices = platforms[platform_id].get_devices()
     device = devices[0]
 
     ctx = cl.Context(devices = [device])
     if not ctx:
-        return "Fail to create context."
+        print("Fail to create context")
+        sys.exit()
     
     print("Loading xclbin...")
     with open(binaryFile, "rb") as f:
@@ -45,7 +48,10 @@ def mnist_func0(data):
         prg.build()
         print('Device programmed successful!')
     except:
-        return 'Fail to program device.'
+        print("Build log:")
+        print(program.get_build_info(device, cl.program_build_info.LOG))
+        print("\nFail to program device.")
+        sys.exit()
     
     krnl_mnist = cl.Kernel(prg, 'adder') # create kernel
     
@@ -66,7 +72,8 @@ def mnist_func0(data):
         cl.enqueue_nd_range_kernel(queue, krnl_mnist, [1], [1])
         cl.enqueue_migrate_mem_objects(queue, [buffer_output], flags=cl.mem_migration_flags.HOST)
     except:
-        return 'Failed to launch kernel.'
+        print('Failed to launch kernel')
+        sys.exit()
 
 
     queue.finish()
@@ -76,17 +83,5 @@ def mnist_func0(data):
     return source_output
 
 group_id = 'd1fc601e-8cc7-11eb-ba6a-df4131a75f9b'
-func_uuid = fxc.register_function(mnist_func0, group=group_id, description='testing mnist model on fpga', public=False, searchable=True)
+func_uuid = fxc.register_function(mnist_func2, group=group_id, description='testing mnist model on fpga', public=True, searchable=True)
 print('Function uuid:', func_uuid)
-
-
-# if __name__ == "__main__":
-#     import numpy as np
-#     data_dir = '/home/myun7/funcx-fpga/data/test_X.npy'
-#     label_dir = '/home/myun7/funcx-fpga/data/test_Y.npy'
-
-#     data =  np.load(data_dir) # [200,28,28,1]
-#     label =  np.load(label_dir)
-
-#     result = mnist_func0(data[0])
-#     print(result)
