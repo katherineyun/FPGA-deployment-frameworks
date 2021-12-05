@@ -33,7 +33,7 @@ print("###########################################")
 # Load network to Inference Engine
 ie = IECore()
 net_onnx = ie.read_network(model=onnx_path)
-exec_net_onnx = ie.load_network(network=net_onnx, device_name="CPU")
+exec_net_onnx = ie.load_network(network=net_onnx, device_name="CPU") 
 
 input_layer_onnx = next(iter(exec_net_onnx.input_info))
 output_layer_onnx = next(iter(exec_net_onnx.outputs))
