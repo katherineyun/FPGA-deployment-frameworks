@@ -8,7 +8,7 @@ import torch
 
 from IPython.display import Markdown, display
 from openvino.inference_engine import IECore
-LENGTH = 4096
+LENGTH = 10130
 model = WaveNet()
 BASE_MODEL_NAME = f"wavenet{LENGTH}"
 # Paths where PyTorch, ONNX and OpenVINO IR models will be stored
